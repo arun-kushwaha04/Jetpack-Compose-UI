@@ -1,23 +1,20 @@
 package com.jetpack.timer
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -25,7 +22,9 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jetpack.timer.ui.theme.TimerTheme
@@ -40,8 +39,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             TimerTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-
+                Surface(color =Color(0xFF101010), modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+                        Timer(modifier = Modifier.size(200.dp))
+                    }
                 }
             }
         }
@@ -51,12 +52,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Timer(
     modifier: Modifier = Modifier,
-    strokeColor: Color,
-    strokeWidth: Dp = 2.dp,
-    totalTime: Long = 100000L
+    strokeWidth: Dp = 5.dp,
+    totalTime: Long = 10000L
 ){
 
-    var isTimerRunning = false
+    var size by remember{
+        mutableStateOf(IntSize.Zero)
+    }
+
+    var isTimerRunning by remember{
+        mutableStateOf(false)
+    }
 
     var value by remember{
         mutableStateOf(1f)
@@ -67,27 +73,35 @@ fun Timer(
     }
 
     LaunchedEffect(key1 = currentTime, key2 = isTimerRunning ){
-        delay(100L)
-        currentTime -= 100L
-        value = (currentTime/totalTime).toFloat()
+        if(isTimerRunning && currentTime >= 0 ){
+            delay(100L)
+            currentTime -= 100L
+            value = currentTime/totalTime.toFloat()
+        }
+        else if(currentTime < 0L){
+            isTimerRunning = false
+            currentTime = 0L
+        }
     }
 
     Box(
         modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF101010)),
+            .onSizeChanged {
+                size = it
+            },
         contentAlignment = Alignment.Center
     ){
-        Canvas(modifier = modifier
-            .padding(10.dp)
-            .size(100.dp)){
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize(),
+        ){
             drawArc(
                 color = Color.Gray,
                 startAngle = -215f,
                 sweepAngle = 250f,
                 useCenter = false,
                 style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round),
-                size = Size(size.width.toFloat(),size.height.toFloat())
+                size = Size(size.width.toFloat(),size.height.toFloat()),
             )
             drawArc(
                 color = Color.Green,
@@ -98,7 +112,7 @@ fun Timer(
                 size = Size(size.width.toFloat(),size.height.toFloat())
             )
             val center = Offset(size.width / 2f,size.height / 2f)
-            val beta = (250f * value + 145f) * (PI/180f).toFloat() //converting degrees into radian
+            val beta = (250f * value + 145f ) * (PI/180f).toFloat() //converting degrees into radian
             val r = size.width / 2f
             val a = cos(beta) * r
             val b = sin(beta) * r
@@ -110,18 +124,35 @@ fun Timer(
                 cap = StrokeCap.Round
             )
         }
-        Text(text = currentTime.toString(), fontSize = 20.sp, color = Color.Green)
-        OutlinedButton(
+        Text(text = (currentTime/1000F).toInt().toString(), fontSize = 20.sp, color = Color.Green)
+        Button(
             onClick = {
-                   isTimerRunning = true
+                if(currentTime == 0L){
+                    currentTime = totalTime
+                    value = 1f
+                    isTimerRunning = false
+                }
+                else{
+                    isTimerRunning = !isTimerRunning
+                }
             },
             modifier = Modifier
+                .padding(top = 20.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .padding(10.dp, 15.dp)
-                .background(Color.Green)
+                .align(Alignment.BottomCenter),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = if(!isTimerRunning) Color.Green else Color.Red
+            )
+
         ) {
-            Text(text = "Start Timer",color = Color.White)
+            Text(
+                text = if(currentTime == totalTime && !isTimerRunning) "Start Timer" else if(currentTime == 0L) "Reset Timer" else if(isTimerRunning) "Stop Timer" else "Resume Timer",
+                modifier = Modifier.background(Color.Transparent),
+                color = Color.White
+            )
         }
     }
+
 
 }
