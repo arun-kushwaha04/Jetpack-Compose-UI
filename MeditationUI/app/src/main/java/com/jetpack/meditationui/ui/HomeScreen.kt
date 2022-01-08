@@ -236,7 +236,7 @@ fun CategoryItem(
         val mediumColoredPoint4 = Offset(width * 0.75f,height * 0.7f)
         val mediumColoredPoint5 = Offset(width * 1.5f,-height.toFloat())
 
-        var mediumColoredPath = Path().apply {
+        val mediumColoredPath = Path().apply {
             moveTo(mediumColoredPoint1.x, mediumColoredPoint1.y)
             standardQuadFromTo(mediumColoredPoint1,mediumColoredPoint2)
             standardQuadFromTo(mediumColoredPoint2,mediumColoredPoint3)
@@ -254,7 +254,7 @@ fun CategoryItem(
         val lightColoredPoint4 = Offset(width * 0.75f,height * 0.9f)
         val lightColoredPoint5 = Offset(width * 1.5f,-height.toFloat())
 
-        var lightColoredPath = Path().apply {
+        val lightColoredPath = Path().apply {
             moveTo(lightColoredPoint1.x, lightColoredPoint1.y)
             standardQuadFromTo(lightColoredPoint1,lightColoredPoint2)
             standardQuadFromTo(lightColoredPoint2,lightColoredPoint3)
